@@ -148,3 +148,9 @@ export function beaconBatch(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
+// 考勤导出
+export function punchTable(params, config) {
+  return ax.post('/action/mod-xiaojiao/weixin/punch/punchTable.do', params, config)
+    .then(res => res.data)
+    .catch(e => console.log(e));
+}

@@ -32,7 +32,7 @@
         <el-table-column label="学校ID" prop="schoolId"></el-table-column>
         <el-table-column label="学校名称" prop="schoolName"></el-table-column>
         <el-table-column label="手机号" prop="tel"></el-table-column>
-        <el-table-column label="操作" width="666">
+        <el-table-column label="操作" width="766">
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -46,12 +46,14 @@
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 4)">学生点评</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 5)">成绩管理</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 6)">课表管理</el-button>
+            <el-button size="mini" type="primary" @click="punchTable(scope.row.schoolId, 7)">考勤导出</el-button>
             <!-- <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 7)">打卡统计</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 8)">打卡轨迹</el-button>-->
           </template>
         </el-table-column>
       </el-table>
     </div>
+
     <div class="page-ft">
       <div class="qx-pagination" v-if="totalCount">
         <el-pagination
@@ -104,6 +106,30 @@
         <el-button size="small" type="primary" @click="submitForm('form')">确定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 考勤导出 -->
+    <div class="derive_box">
+      <el-dialog top="40px" :visible.sync="attendanceSheet">
+        <p class="derive">考勤导出</p>
+        <el-form :inline="true" :model="formInline" class="demo-form-inline" :rules="rules">
+          <el-form-item label="年级" prop="gradeClass">
+            <el-select v-model="formInline.region" placeholder="请选择">
+              <el-option label="一年级" value="shanghai"></el-option>
+              <el-option label="二年级" value="beijing"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="班级" prop="whatClass">
+            <el-select v-model="formInline.region" placeholder="请选择">
+              <el-option label="一班" value="shanghai"></el-option>
+              <el-option label="二班" value="beijing"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onSubmit">确认导出</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+    </div>
   </div>
 </template>
 <script>
@@ -120,6 +146,13 @@ export default {
   mixins: [pageMixins],
   data() {
     return {
+      //考勤导出============
+      attendanceSheet: false,
+      formInline: {
+        user: "",
+        region: ""
+      },
+      // -------------------
       query: {
         schoolName: "",
         leaderName: ""
@@ -130,6 +163,20 @@ export default {
         terminalSchoolId: null
       },
       rules: {
+        gradeClass: [
+          {
+            required: true,
+            message: "请选择",
+            trigger: "blur"
+          }
+        ],
+        whatClass: [
+          {
+            required: true,
+            message: "请选择",
+            trigger: "blur"
+          }
+        ],
         regionIds: [
           {
             required: true,
@@ -164,6 +211,11 @@ export default {
     ...mapGetters(["schoolId"])
   },
   methods: {
+    // 考勤导出====================
+    onSubmit() {
+      console.log("submit!");
+    },
+
     handleCurrentChange(curr) {
       this.query.page = curr;
     },
@@ -197,6 +249,10 @@ export default {
         this.form = Object.assign({}, args, { regionIds: regArray });
       }
     },
+    // 考勤导出
+    punchTable(schoolId, index) {
+      this.attendanceSheet = true;
+    },
     //班级管理 老师管理 学生管理
     handleOpen(schoolId, index) {
       if (index == 1) {
@@ -218,10 +274,6 @@ export default {
       } else if (index === 5) {
         this.$router.push({
           path: `/weixin/score/${schoolId}`
-        });
-      } else if (index === 7) {
-        this.$router.push({
-          path: `/weixin/clockin/${schoolId}`
         });
       } else {
         this.$router.push({
@@ -303,4 +355,17 @@ export default {
 };
 </script>
 <style lang="less" scoped>
+.derive_box {
+  .derive {
+    font-size: 18px;
+    margin-top: -43px;
+  }
+  .el-dialog {
+    .el-form-item {
+      width: 100%;
+      text-align: center;
+      margin-top: 50px;
+    }
+  }
+}
 </style>
