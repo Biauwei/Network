@@ -1,6 +1,8 @@
 <template>
   <div class="page">
     <p>欢迎您登录Q校网业务综合管理后台</p>
+    <p>欢迎您登录Q校网业务综合管理后台</p>
+    <p>欢迎您登录Q校网业务综合管理后台</p>
   </div>
 </template>
 <script>
