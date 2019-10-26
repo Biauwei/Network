@@ -154,3 +154,9 @@ export function punchTable(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
+// 查询学校年级 班级信息
+export function querySchoolGrade(params, config) {
+  return ax.post('/action/mod-xiaojiao/weixin/punch/querySchoolGrade.do', params, config)
+    .then(res => res.data)
+    .catch(e => console.log(e));
+}

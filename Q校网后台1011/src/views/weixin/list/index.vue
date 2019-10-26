@@ -46,7 +46,7 @@
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 4)">学生点评</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 5)">成绩管理</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 6)">课表管理</el-button>
-            <el-button size="mini" type="primary" @click="punchTable(scope.row.schoolId, 7)">考勤导出</el-button>
+            <el-button size="mini" type="primary" @click="punchTableBtn(scope.row.schoolId, 7)">考勤导出</el-button>
             <!-- <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 7)">打卡统计</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 8)">打卡轨迹</el-button>-->
           </template>
@@ -111,21 +111,60 @@
     <div class="derive_box">
       <el-dialog top="40px" :visible.sync="attendanceSheet">
         <p class="derive">考勤导出</p>
-        <el-form :inline="true" :model="formInline" class="demo-form-inline" :rules="rules">
-          <el-form-item label="年级" prop="gradeClass">
-            <el-select v-model="formInline.region" placeholder="请选择">
-              <el-option label="一年级" value="shanghai"></el-option>
-              <el-option label="二年级" value="beijing"></el-option>
+        <el-form :inline="true" :model="form" class="demo-form-inline" :rules="rules" ref="form">
+          <!-------------------------------------------------------------------------------- -->
+          <div class="block">
+            <el-form-item label="开始时间" prop="startTime">
+              <el-date-picker
+                v-model="form.startTime"
+                ref="startTime"
+                type="datetime"
+                placeholder="选择日期时间"
+                value-format="timestamp"
+              >></el-date-picker>
+            </el-form-item>
+          </div>
+
+          <div class="block">
+            <el-form-item label="结束时间" prop="endTime">
+              <el-date-picker
+                v-model="form.endTime"
+                ref="endTime"
+                type="datetime"
+                placeholder="选择日期时间"
+                value-format="timestamp"
+              ></el-date-picker>
+            </el-form-item>
+          </div>
+          <!-- ------------------------------------------------------------------------------ -->
+          <el-form-item label="选择年级" prop="gradeClass">
+            <el-select
+              @change="getValue"
+              v-model="form.gradeClass"
+              placeholder="请选择年级"
+              ref="gradeClass"
+            >
+              <el-option
+                v-for="item in schoolgradeName"
+                :key="item.id"
+                :label="item.gradeName"
+                :value="item.gradeName"
+              ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="班级" prop="whatClass">
-            <el-select v-model="formInline.region" placeholder="请选择">
-              <el-option label="一班" value="shanghai"></el-option>
-              <el-option label="二班" value="beijing"></el-option>
+          <el-form-item label="选择班级" prop="whatClass">
+            <el-select v-model="form.whatClass" placeholder="请选择班级" ref="whatClass">
+              <el-option
+                v-for="item in schoolgradeName"
+                :key="item.id"
+                :label="item.gradeName"
+                :value="item.gradeName"
+              ></el-option>
             </el-select>
           </el-form-item>
+          <!-- ----------------------------------------------------------------------------- -->
           <el-form-item>
-            <el-button type="primary" @click="onSubmit">确认导出</el-button>
+            <el-button type="primary" @click="onSubmit('form')">确认导出</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -138,6 +177,7 @@ import region from "@/components/region";
 import { isPhone } from "@/utils/validator";
 import { mapGetters } from "vuex";
 import pageMixins from "@/mixins/page";
+import qs from "qs";
 export default {
   name: "weixinSchool",
   components: {
@@ -148,32 +188,48 @@ export default {
     return {
       //考勤导出============
       attendanceSheet: false,
-      formInline: {
-        user: "",
-        region: ""
-      },
-      // -------------------
+      schoolgradeName: [],
+      schoolClasses: [],
       query: {
         schoolName: "",
         leaderName: ""
       },
+
       form: {
         tel: "",
         schoolName: "",
-        terminalSchoolId: null
+        terminalSchoolId: null,
+        gradeClass: "",
+        whatClass: "",
+        startTime: "",
+        endTime: ""
       },
       rules: {
+        startTime: [
+          {
+            required: true,
+            message: "请选择开始时间",
+            trigger: "blur"
+          }
+        ],
+        endTime: [
+          {
+            required: true,
+            message: "请选择结束时间",
+            trigger: "blur"
+          }
+        ],
         gradeClass: [
           {
             required: true,
-            message: "请选择",
+            message: "请选择年级",
             trigger: "blur"
           }
         ],
         whatClass: [
           {
             required: true,
-            message: "请选择",
+            message: "请选择班级",
             trigger: "blur"
           }
         ],
@@ -204,16 +260,97 @@ export default {
           }
         ]
       },
-      schoolList: []
+      schoolList: [],
+      startTimes: "",
+      endTimes: "",
+      params: []
     };
   },
   computed: {
     ...mapGetters(["schoolId"])
   },
+
   methods: {
-    // 考勤导出====================
-    onSubmit() {
-      console.log("submit!");
+    getValue: function() {
+      this.schoolClasses = this.form.gradeClass;
+    },
+    // 考勤导出
+    async punchTableBtn(schoolId, index) {
+      let data = {
+        schoolId: schoolId
+      };
+      this.attendanceSheet = true;
+      let res = await service.querySchoolGrade(data, {
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.errorCode === 0) {
+        this.schoolgradeName = res.data;
+      }
+    },
+
+    // 考勤导出
+    onSubmit(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          let startTimes = this.$refs.startTime.value;
+          let endTimes = this.$refs.endTime.value;
+
+          if (startTimes >= endTimes) {
+            alert("开始时间和结束时间不配备");
+          } else {
+            let setStartTimes = new Date(startTimes);
+            let y = setStartTimes.getFullYear();
+            let MM = setStartTimes.getMonth() + 1;
+            MM = MM < 10 ? "0" + MM : MM;
+            let d = setStartTimes.getDate();
+            d = d < 10 ? "0" + d : d;
+            let h = setStartTimes.getHours();
+            h = h < 10 ? "0" + h : h;
+            let m = setStartTimes.getMinutes();
+            m = m < 10 ? "0" + m : m;
+            let s = setStartTimes.getSeconds();
+            s = s < 10 ? "0" + s : s;
+            var setStart = y + "-" + MM + "-" + d + " " + h + ":" + m + ":" + s;
+
+            let date = new Date(endTimes);
+            let yy = date.getFullYear();
+            let MMM = date.getMonth() + 1;
+            MMM = MMM < 10 ? "0" + MMM : MMM;
+            let dd = date.getDate();
+            dd = dd < 10 ? "0" + dd : dd;
+            let hh = date.getHours();
+            hh = hh < 10 ? "0" + hh : hh;
+            let mm = date.getMinutes();
+            mm = mm < 10 ? "0" + mm : mm;
+            let ss = date.getSeconds();
+            ss = ss < 10 ? "0" + ss : ss;
+            var setEnd =
+              yy + "-" + MMM + "-" + dd + " " + hh + ":" + mm + ":" + ss;
+
+            let formObj = {
+              classId: 3,
+              startTime: setStart,
+              endTime: setEnd,
+              filePath: "C://"
+            };
+
+            // let data = qs.stringify(formObj);
+            console.log(formObj);
+            // this.punchTable(data);
+            this.punchTable(formObj);
+          }
+        }
+      });
+    },
+
+    async punchTable(params) {
+      let res = await service.punchTable(params, {
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.errorCode === 0) {
+        this.tableData = res.data.data;
+        this.totalCount = res.data.totalCount;
+      }
     },
 
     handleCurrentChange(curr) {
@@ -249,10 +386,7 @@ export default {
         this.form = Object.assign({}, args, { regionIds: regArray });
       }
     },
-    // 考勤导出
-    punchTable(schoolId, index) {
-      this.attendanceSheet = true;
-    },
+
     //班级管理 老师管理 学生管理
     handleOpen(schoolId, index) {
       if (index == 1) {
@@ -364,7 +498,7 @@ export default {
     .el-form-item {
       width: 100%;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 20px;
     }
   }
 }
