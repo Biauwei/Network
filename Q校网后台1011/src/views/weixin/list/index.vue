@@ -374,7 +374,7 @@ export default {
       });
       if (res.errorCode === 0) {
         this.innerUrl = res.data.tablePath;
-        window.open(this.innerUrl);
+        window.location.href = this.innerUrl;
       }
     },
 

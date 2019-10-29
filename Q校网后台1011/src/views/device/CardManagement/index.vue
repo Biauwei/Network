@@ -374,9 +374,17 @@ export default {
   width: 150px;
   .el-input {
     width: 150px;
+    text-align: center;
   }
 }
 .el-select {
   width: 150px;
+}
+</style>
+<style lang="less">
+.el-form-item--small {
+  .el-form-item__label {
+    text-align: center !important;
+  }
 }
 </style>
