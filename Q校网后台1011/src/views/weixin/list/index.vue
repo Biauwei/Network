@@ -53,7 +53,6 @@
         </el-table-column>
       </el-table>
     </div>
-
     <div class="page-ft">
       <div class="qx-pagination" v-if="totalCount">
         <el-pagination
@@ -109,7 +108,13 @@
 
     <!-- 考勤导出 -->
     <div class="derive_box" v-if="schoolgradeName.length>0">
-      <el-dialog top="40px" :visible.sync="attendanceSheet">
+      <el-dialog
+        top="40px"
+        :visible.sync="attendanceSheet"
+        v-loading="loading"
+        element-loading-text="正在下载中..."
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
         <p class="derive">考勤导出</p>
         <el-form :inline="true" :model="form" class="demo-form-inline" :rules="rules" ref="form">
           <!-------------------------------------------------------------------------------- -->
@@ -202,6 +207,8 @@ export default {
       array2: [],
       classIndex: 0,
       ClassId: "",
+      loading: false,
+      loadingTime: "",
 
       query: {
         schoolName: "",
@@ -287,14 +294,13 @@ export default {
     },
     getClassId: function(e) {
       this.ClassId = this.schoolgradeName[this.classIndex].classes[e].classId;
-      console.log(this.ClassId);
     },
     BeginFocus() {
       let endTimes = this.$refs.endTime.value;
       let startTimes = this.$refs.startTime.value;
       if (endTimes) {
         if (startTimes >= endTimes) {
-          alert("区间范围不正确");
+          this.$message({ message: "请选择正确的时间范围", type: "warning" });
         }
       }
     },
@@ -302,7 +308,7 @@ export default {
       let endTimes = this.$refs.endTime.value;
       let startTimes = this.$refs.startTime.value;
       if (startTimes >= endTimes) {
-        alert("区间范围不正确");
+        this.$message({ message: "请选择正确的时间范围", type: "warning" });
       }
     },
     // 考勤导出
@@ -326,7 +332,7 @@ export default {
           let startTimes = this.$refs.startTime.value;
           let endTimes = this.$refs.endTime.value;
           if (startTimes >= endTimes) {
-            alert("区间范围不正确");
+            this.$message({ message: "请选择正确的时间范围", type: "warning" });
           } else {
             let setStartTimes = new Date(startTimes);
             let y = setStartTimes.getFullYear();
@@ -374,6 +380,10 @@ export default {
       });
       if (res.errorCode === 0) {
         this.innerUrl = res.data.tablePath;
+        this.loading = true;
+        this.loadingTime = setTimeout(() => {
+          this.loading = false;
+        }, 2000);
         window.location.href = this.innerUrl;
       }
     },
@@ -510,6 +520,10 @@ export default {
   },
   mounted() {
     this.querySchoolList(this.query);
+  },
+  beforeDestroy() {
+    //清除定时器
+    clearInterval(this.loadingTime);
   }
 };
 </script>
