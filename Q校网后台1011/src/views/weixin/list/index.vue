@@ -108,7 +108,7 @@
     </el-dialog>
 
     <!-- 考勤导出 -->
-    <div class="derive_box">
+    <div class="derive_box" v-if="schoolgradeName.length>0">
       <el-dialog top="40px" :visible.sync="attendanceSheet">
         <p class="derive">考勤导出</p>
         <el-form :inline="true" :model="form" class="demo-form-inline" :rules="rules" ref="form">
@@ -121,6 +121,7 @@
                 type="datetime"
                 placeholder="选择日期时间"
                 value-format="timestamp"
+                @blur="BeginFocus"
               >></el-date-picker>
             </el-form-item>
           </div>
@@ -133,38 +134,44 @@
                 type="datetime"
                 placeholder="选择日期时间"
                 value-format="timestamp"
+                @blur="endFocus"
               ></el-date-picker>
             </el-form-item>
           </div>
           <!-- ------------------------------------------------------------------------------ -->
           <el-form-item label="选择年级" prop="gradeClass">
             <el-select
-              @change="getValue"
               v-model="form.gradeClass"
               placeholder="请选择年级"
               ref="gradeClass"
+              @change="getIndex"
             >
               <el-option
-                v-for="item in schoolgradeName"
-                :key="item.id"
+                v-for="(item,index) in schoolgradeName"
+                :key="item.classId"
                 :label="item.gradeName"
-                :value="item.gradeName"
+                :value="index"
               ></el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="选择班级" prop="whatClass">
-            <el-select v-model="form.whatClass" placeholder="请选择班级" ref="whatClass">
+            <el-select
+              v-model="form.whatClass"
+              placeholder="请选择班级"
+              ref="whatClass"
+              @change="getClassId"
+            >
               <el-option
-                v-for="item in schoolgradeName"
+                v-for="(item,index) in schoolgradeName[classIndex].classes"
                 :key="item.id"
-                :label="item.gradeName"
-                :value="item.gradeName"
+                :label="item.className"
+                :value="index"
               ></el-option>
             </el-select>
           </el-form-item>
           <!-- ----------------------------------------------------------------------------- -->
           <el-form-item>
-            <el-button type="primary" @click="onSubmit('form')">确认导出</el-button>
+            <el-button type="primary" @click="onSubmit('form')">导出Excel</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -190,6 +197,12 @@ export default {
       attendanceSheet: false,
       schoolgradeName: [],
       schoolClasses: [],
+      innerUrl: "",
+      array1: [],
+      array2: [],
+      classIndex: 0,
+      ClassId: "",
+
       query: {
         schoolName: "",
         leaderName: ""
@@ -261,8 +274,6 @@ export default {
         ]
       },
       schoolList: [],
-      startTimes: "",
-      endTimes: "",
       params: []
     };
   },
@@ -271,8 +282,28 @@ export default {
   },
 
   methods: {
-    getValue: function() {
-      this.schoolClasses = this.form.gradeClass;
+    getIndex: function(event) {
+      this.classIndex = event;
+    },
+    getClassId: function(e) {
+      this.ClassId = this.schoolgradeName[this.classIndex].classes[e].classId;
+      console.log(this.ClassId);
+    },
+    BeginFocus() {
+      let endTimes = this.$refs.endTime.value;
+      let startTimes = this.$refs.startTime.value;
+      if (endTimes) {
+        if (startTimes >= endTimes) {
+          alert("区间范围不正确");
+        }
+      }
+    },
+    endFocus() {
+      let endTimes = this.$refs.endTime.value;
+      let startTimes = this.$refs.startTime.value;
+      if (startTimes >= endTimes) {
+        alert("区间范围不正确");
+      }
     },
     // 考勤导出
     async punchTableBtn(schoolId, index) {
@@ -285,18 +316,17 @@ export default {
       });
       if (res.errorCode === 0) {
         this.schoolgradeName = res.data;
+        this.schoolgradeName[0].classes;
       }
     },
-
     // 考勤导出
     onSubmit(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
           let startTimes = this.$refs.startTime.value;
           let endTimes = this.$refs.endTime.value;
-
           if (startTimes >= endTimes) {
-            alert("开始时间和结束时间不配备");
+            alert("区间范围不正确");
           } else {
             let setStartTimes = new Date(startTimes);
             let y = setStartTimes.getFullYear();
@@ -311,7 +341,6 @@ export default {
             let s = setStartTimes.getSeconds();
             s = s < 10 ? "0" + s : s;
             var setStart = y + "-" + MM + "-" + d + " " + h + ":" + m + ":" + s;
-
             let date = new Date(endTimes);
             let yy = date.getFullYear();
             let MMM = date.getMonth() + 1;
@@ -328,15 +357,11 @@ export default {
               yy + "-" + MMM + "-" + dd + " " + hh + ":" + mm + ":" + ss;
 
             let formObj = {
-              classId: 3,
+              classId: this.ClassId,
               startTime: setStart,
               endTime: setEnd,
-              filePath: "C://"
+              filePath: "C:/"
             };
-
-            // let data = qs.stringify(formObj);
-            console.log(formObj);
-            // this.punchTable(data);
             this.punchTable(formObj);
           }
         }
@@ -348,8 +373,8 @@ export default {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
-        this.tableData = res.data.data;
-        this.totalCount = res.data.totalCount;
+        this.innerUrl = res.data.tablePath;
+        window.location.href = this.innerUrl;
       }
     },
 
