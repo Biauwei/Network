@@ -16,6 +16,8 @@ import * as prize from './module/prize';
 import * as schedule from './module/schedule';
 import * as student from './module/student';
 import * as teacher from './module/teacher';
+import * as CardManagement from './module/CardManagement';
+import * as control from './module/control';
 export default {
   ...device,
   ...content,
@@ -35,4 +37,6 @@ export default {
   ...schedule,
   ...student,
   ...teacher,
+  ...CardManagement,
+  ...control,
 }

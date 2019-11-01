@@ -5,7 +5,6 @@ import {
   removeToken
 } from "@/utils/auth";
 
-
 export default {
   namespaced: true,
   state: {

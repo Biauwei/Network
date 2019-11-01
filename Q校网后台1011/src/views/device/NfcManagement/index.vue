@@ -11,11 +11,11 @@
           label-width="70px"
           label-position="left"
         >
-          <el-form-item label="MAC">
-            <el-input v-model="query.searchMAC" ref="searchMAC"></el-input>
+          <el-form-item label="ID">
+            <el-input v-model="query.searchNO" ref="searchNO"></el-input>
           </el-form-item>
           <el-form-item label="NO">
-            <el-input v-model="query.searchId" ref="searchId"></el-input>
+            <el-input v-model="query.searchID" ref="searchID"></el-input>
           </el-form-item>
 
           <el-form-item>
@@ -73,11 +73,11 @@
           <el-form-item label="序号" prop="id" v-if="idShow">
             <el-input v-model="form.id"></el-input>
           </el-form-item>
-          <el-form-item label="MAC" prop="mac">
-            <el-input v-model="form.beaconMac" placeholder="请输入MAC"></el-input>
+          <el-form-item label="ID">
+            <el-input v-model="form.nfcId" placeholder="请输入ID"></el-input>
           </el-form-item>
-          <el-form-item label="NO" prop="beaconMac">
-            <el-input v-model="form.beaconId" placeholder="请输入ID"></el-input>
+          <el-form-item label="NO">
+            <el-input v-model="form.nfcMac" placeholder="请输入NO"></el-input>
           </el-form-item>
         </el-form>
         <!-- 取消提交按钮 -->
@@ -99,7 +99,7 @@ import QTable from "@/components/QTable";
 import pageMixins from "@/mixins/page";
 
 export default {
-  name: "CardManagement",
+  name: "NfcManagement",
   components: {
     "qx-region": region,
     "qx-region-t": regiont,
@@ -120,12 +120,12 @@ export default {
           prop: "id"
         },
         {
-          label: "MAC",
-          prop: "beaconMac"
+          label: "ID",
+          prop: "nfcId"
         },
         {
           label: "NO",
-          prop: "beaconId"
+          prop: "nfcMac"
         }
       ],
       selected: "",
@@ -136,8 +136,8 @@ export default {
 
       //默认参数
       query: {
-        searchMAC: "",
-        searchId: "",
+        searchID: "",
+        searchNO: "",
         scopeType: this.$store.getters.scopeType,
         scopeId: this.$store.getters.scopeId
       },
@@ -179,7 +179,7 @@ export default {
             type: "success"
           });
           // this.queryTeachers(this.query);
-          this.queryBeaconAll();
+          this.queryNfcAll();
         }
       }
       return extension || extensions;
@@ -188,16 +188,16 @@ export default {
     // 当前页数
     handleCurrentChange(currentPage) {
       this.currentPage = currentPage;
-      this.queryBeaconAll();
+      this.queryNfcAll();
     },
     // 每页多少条
     handleSizeChange(size) {
       this.pagesize = size;
-      this.queryBeaconAll();
+      this.queryNfcAll();
     },
     //搜索
     handleSearch() {
-      this.queryBeaconAll();
+      this.queryNfcAll();
     },
     handleRegionChange(queryId, queryType) {
       this.query.scopeId = queryId;
@@ -226,22 +226,21 @@ export default {
         type: "warning"
       })
         .then(() => {
-          this.deleteBeaconALL(row);
+          this.deleteNfc(row);
         })
         .catch(error => {
           return false;
         });
     },
-    async deleteBeaconALL(row) {
+    async deleteNfc(row) {
       let data = {
         id: row.id
       };
-      let res = await service.deleteBeaconALL(data, {
+      let res = await service.deleteNfc(data, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
-        // this.deleteBeaconALL(row);
-        this.queryBeaconAll();
+        this.queryNfcAll();
         this.$message({
           message: "删除成功",
           type: "warning"
@@ -264,7 +263,7 @@ export default {
           type: "warning"
         })
           .then(() => {
-            this.updateBeaconAll(this.form);
+            this.updateNfc(this.form);
           })
           .catch(error => {
             return false;
@@ -276,7 +275,7 @@ export default {
           type: "warning"
         })
           .then(() => {
-            this.beaconAll(this.form);
+            this.addNfcAll(this.form);
           })
           .catch(error => {
             return false;
@@ -284,16 +283,17 @@ export default {
       }
     },
     //新增设备绑定
-    async beaconAll(formNFC) {
+    async addNfcAll(formNFC) {
       let data = {
-        beaconMac: formNFC.beaconMac,
-        beaconId: formNFC.beaconId
+        nfcMac: formNFC.nfcMac,
+        nfcId: formNFC.nfcId * 1
       };
-      let res = await service.beaconAll(data, {
+      console.log(data);
+      let res = await service.addNfcAll(data, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
-        this.queryBeaconAll();
+        this.queryNfcAll();
         this.$message({
           message: "添加成功",
           type: "warning"
@@ -307,21 +307,21 @@ export default {
       }
     },
 
-    // 编辑Beacon库
+    // 编辑nfc库
     handleEdit(row) {
       this.idShow = true;
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
-      // console.log(this.form);
     },
     //编辑设备绑定
-    async updateBeaconAll(formNFC) {
+    async updateNfc(formNFC) {
       let data = {
         id: formNFC.id,
-        beaconId: formNFC.beaconId,
-        beaconMac: formNFC.beaconMac
+        nfcId: formNFC.nfcId,
+        nfcMac: formNFC.nfcMac
       };
-      let res = await service.updateBeaconAll(data, {
+      console.log(data);
+      let res = await service.updateNfc(data, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
@@ -330,7 +330,7 @@ export default {
           type: "warning"
         });
         this.dialogFormVisible = false;
-        this.queryBeaconAll();
+        this.queryNfcAll();
       }
     },
 
@@ -343,25 +343,28 @@ export default {
     },
 
     //显示设备列表
-    async queryBeaconAll() {
+    async queryNfcAll() {
       let data = {
         page: this.currentPage,
         pageSize: this.pagesize,
-        beaconId: this.query.searchId,
-        mac: this.query.searchMAC
+        nfcId: this.query.searchNO,
+        nfcMac: this.query.searchID
       };
-      let res = await service.queryBeaconAll(data, {
+
+      let res = await service.queryNfcAll(data, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
+        console.log(this.totalCount);
+        console.log(this.tableData);
       }
     }
   },
   created() {
     this.queryLabel();
-    this.queryBeaconAll();
+    this.queryNfcAll();
   }
 };
 </script>

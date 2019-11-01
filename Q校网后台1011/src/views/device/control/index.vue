@@ -66,7 +66,7 @@
     <!-- 新增 or 编辑 -->
     <template>
       <el-dialog top="40px" :visible.sync="dialogFormVisible" @close="handleDialogClose">
-        <span slot="title" class="dialog-title">{{ isShow ? '新增': '编辑' }}</span>
+        <span slot="title" class="dialog-title">{{ isShow ? '批量设置开关时间': '设置开/关时间' }}</span>
 
         <el-form ref="form" :model="form" status-icon size="small" :label-width="formLabelWidth">
           <template v-if="isShow">
@@ -165,48 +165,6 @@ export default {
         regionId: [],
         labelIds: []
       },
-      // rules: {
-      //   regionId: [
-      //     {
-      //       required: true,
-      //       message: "请选择区域",
-      //       trigger: "blur"
-      //     }
-      //   ],
-      //   schoolId: [
-      //     {
-      //       required: true,
-      //       message: "请选择学校名称",
-      //       trigger: "blur"
-      //     }
-      //   ],
-      //   batch: [
-      //     {
-      //       required: true,
-      //       message: "请输入开机时间",
-      //       trigger: "blur"
-      //     }
-      //   ],
-      //   serial: [
-      //     {
-      //       required: true,
-      //       message: "请输入关机时间",
-      //       trigger: "blur"
-      //     }
-      //   ],
-      //   mac: [
-      //     {
-      //       required: true,
-      //       message: "请输入MAC地址",
-      //       trigger: "blur"
-      //     },
-      //     {
-      //       required: true,
-      //       validator: isMac,
-      //       trigger: "blur"
-      //     }
-      //   ]
-      // },
       //默认参数
       query: {
         schoolName: "",
@@ -246,6 +204,8 @@ export default {
         this.$refs.form.resetFields();
       });
     },
+
+    // 批量设置开关时间--wei
     handleAdd() {
       this.isShow = true;
       this.dialogFormVisible = true;
@@ -254,35 +214,29 @@ export default {
         labelIds: []
       };
     },
+
+    // 查询设备开关时间--wei
     handleEdit(row) {
       this.isShow = false;
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
       this.queryProvinceCityRegionBySchoolId(row.schoolId);
     },
-    // handleDel(row) {
-    //   this.$confirm(`确定删除吗?`, "提示", {
-    //     confirmButtonText: "确定",
-    //     cancelButtonText: "取消",
-    //     type: "warning"
-    //   })
-    //     .then(() => {
-    //       this.deleteDeviceBind(row.deviceId);
-    //     })
-    //     .catch(error => {
-    //       return false;
-    //     });
-    // },
 
+    // 提交设置开关时间
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
           if (this.isShow) {
+            // 批量设置时间
             let { regionId, ...args } = this.form;
             this.addDeviceBind(args);
+            console.log(1);
           } else {
-            let { postTime, schoolName, ...args } = this.form;
-            this.updateDeviceBind(args);
+            // 设置开关时间
+            // let { ...args } = this.form;
+            let mac = this.form.mac;
+            this.deviceOnAndOff(mac);
           }
         }
       });
@@ -319,6 +273,7 @@ export default {
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
+        console.log(this.tableData);
       }
     },
     //新增设备绑定
@@ -334,14 +289,16 @@ export default {
         return false;
       }
     },
-    //编辑设备绑定
-    async updateDeviceBind(params = {}) {
-      let res = await service.updateDeviceBind(params);
+    //设置开关时间
+    async deviceOnAndOff(params = {}) {
+      let res = await service.deviceOnAndOff(params);
       if (res.errorCode === 0) {
+        console.log(res);
         this.dialogFormVisible = false;
         this.showDeviceList();
       }
     },
+
     //删除设备绑定
     async deleteDeviceBind(deviceId) {
       let res = await service.deleteDeviceBind({ deviceId });

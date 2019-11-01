@@ -18,9 +18,10 @@ export function findSchool(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
+
 //编辑学校（微信端）
-export function updateSchool(params, config) {
-  return ax.post('/action/mod-xiaojiao/weixin/school/updateSchool.do', params, config)
+export function updateWxSchool(params, config) {
+  return ax.post('/action/mod-xiaojiao/weixin/school/updateWxSchool.do', params, config)
     .then(res => res.data)
     .catch(e => console.log(e));
 }

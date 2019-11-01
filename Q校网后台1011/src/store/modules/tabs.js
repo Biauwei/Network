@@ -13,6 +13,7 @@ export default {
       });
     },
     del(state, params) {
+      // 返回数组的迭代对象，该对象包含数组的键值对[0, "Banana"]
       let ientries = state.tabList.entries();
       for (let [i, v] of ientries) {
         if (v.path === params.path) {

@@ -23,12 +23,12 @@ export const constantRouterMap = [{
         }
       },
       // {
-      //   path: '/control',
-      //   comment: 'control',
+      //   path: '/nfcmanagement',
+      //   comment: 'nfcmanagement',
       //   component: () =>
-      //     import('@/views/control2'),
+      //     import('@/views/device/nfcmanagement'),
       //   meta: {
-      //     title: '远程控制'
+      //     title: 'NFC卡库管理'
       //   }
       // }
     ]
@@ -39,7 +39,6 @@ export const constantRouterMap = [{
     redirect: '/home',
   }
 ]
-
 
 export default new Router({
   //mode: 'history', //取消导航中的 # 

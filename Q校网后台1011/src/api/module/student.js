@@ -141,21 +141,3 @@ export function queryApInfo(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
-
-// 批量导入Beacon库
-export function beaconBatch(params, config) {
-  return ax.post('/action/mod-xiaojiao/weixin/punch/beaconBatch.do', params, config)
-    .then(res => res.data)
-    .catch(e => console.log(e));
-}
-export function querySchoolGrade(params, config) {
-  return ax.post('/action/mod-xiaojiao/weixin/punch/querySchoolGrade.do', params, config)
-    .then(res => res.data)
-    .catch(e => console.log(e));
-}
-
-export function punchTable(params, config) {
-  return ax.post('/action/mod-xiaojiao/weixin/punch/punchTable.do', params, config)
-    .then(res => res.data)
-    .catch(e => console.log(e));
-}

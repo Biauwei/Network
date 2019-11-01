@@ -3,17 +3,16 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
 
 const path = require('path')
-
 module.exports = {
   dev: {
-
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
       '/': {
         //target: process.env.BASE_API,
-        target: 'http://192.168.18.200:8080', //目标接口域名
+        // target: 'http://192.168.18.200:8080', //目标接口域名
+        target: 'http://192.168.18.134:80', //目标接口域名
         changeOrigin: true, //是否跨域
         secure: false, //允许https请求
         pathRewrite: {

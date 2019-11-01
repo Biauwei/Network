@@ -450,6 +450,7 @@ export default {
         });
       }
     },
+    // 确认编辑
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
@@ -457,7 +458,8 @@ export default {
           if (this.isShow) {
             this.addLeaderInit(args);
           } else {
-            this.updateSchool(args);
+            this.updateWxSchool(args);
+            console.log(123);
           }
         }
       });
@@ -497,8 +499,8 @@ export default {
       }
     },
     //编辑学校（微信端）
-    async updateSchool(params = {}) {
-      let res = await service.updateSchool(params, {
+    async updateWxSchool(params = {}) {
+      let res = await service.updateWxSchool(params, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
