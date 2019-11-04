@@ -34,12 +34,6 @@
     <div class="page-bd">
       <!-- 表格数据 -->
       <base-table :data="tableData" :columns="columns">
-        <el-table-column label="状态" width="400">
-          <template>
-            <span class="radius"></span>
-            <span class="inOff">在线</span>
-          </template>
-        </el-table-column>
         <el-table-column label="控制" width="400">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">设置开/关机时间</el-button>
@@ -96,12 +90,30 @@
               <el-input v-model="form.schoolName" disabled></el-input>
             </el-form-item>
           </template>
-          <el-form-item label="开机时间" prop="batch">
-            <el-time-picker format="HH:mm" v-model="value1" placeholder="8:00"></el-time-picker>
+
+          <el-form-item label="开机时间">
+            <el-time-select
+              v-model="powerOnTime"
+              :picker-options="{
+              start: '00:00',
+              step: '00:01',
+              end: '23:59',
+              }"
+            ></el-time-select>
           </el-form-item>
-          <el-form-item label="关机时间" prop="serial">
-            <el-time-picker format="HH:mm" arrow-control v-model="value2" placeholder="22:00"></el-time-picker>
+          <el-form-item label="关机时间">
+            <el-time-select
+              v-model="powerOffTime"
+              :picker-options="{
+              start: '00:00',
+              step: '00:01',
+              end: '23:59',
+              }"
+            >></el-time-select>
           </el-form-item>
+          <el-checkbox-group v-model="checkedweek" :min="1" :max="7" @checked="cheBtn(week)">
+            <el-checkbox v-for="week in cities" :label="week" :key="week">{{week}}</el-checkbox>
+          </el-checkbox-group>
         </el-form>
 
         <!-- 取消提交按钮 -->
@@ -113,6 +125,8 @@
     </template>
   </div>
 </template>
+
+
 <script>
 // import service from "@/api";
 import service from "@/api";
@@ -122,7 +136,17 @@ import { isMac, isPhone } from "@/utils/validator";
 import { mapGetters } from "vuex";
 import QTable from "@/components/QTable";
 import pageMixins from "@/mixins/page";
-
+import axios from "axios";
+import qs from "qs";
+const weekOptions = [
+  "星期一",
+  "星期二",
+  "星期三",
+  "星期四",
+  "星期五",
+  "星期六",
+  "星期日"
+];
 export default {
   name: "control",
   components: {
@@ -136,8 +160,14 @@ export default {
       formInline: {
         region: ""
       },
-      value1: new Date(),
-      value2: new Date(),
+      checkedweek: [],
+      cities: weekOptions,
+      weekDays: [],
+      checked: false,
+      powerOnTime: "",
+      powerOffTime: "",
+      checkList: [],
+
       columns: [
         {
           label: "序号",
@@ -155,10 +185,6 @@ export default {
           label: "MAC地址",
           prop: "mac"
         }
-        // {
-        //   label: "状态",
-        //   prop: "address"
-        // }
       ],
       selected: "",
       form: {
@@ -176,24 +202,28 @@ export default {
       //学校名称
       schoolList: [],
       //请求的数据
-      labelsList: []
+      labelsList: [],
+      weekday: ""
     };
   },
   computed: {
-    ...mapGetters(["scopeType"])
+    ...mapGetters(["scopeType"]),
+    cheBtn(week) {
+      console.log(week);
+    }
   },
   methods: {
     handleCurrentChange(curr) {
       this.query.page = curr;
-      this.showDeviceList();
+      this.queryClassCardList();
     },
     handleSizeChange(size) {
       this.query.pageSize = size;
-      this.showDeviceList();
+      this.queryClassCardList();
     },
     //搜索
     handleSearch() {
-      this.showDeviceList();
+      this.queryClassCardList();
     },
     handleRegionChange(queryId, queryType) {
       this.query.scopeId = queryId;
@@ -221,6 +251,24 @@ export default {
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
       this.queryProvinceCityRegionBySchoolId(row.schoolId);
+      let mac = this.form.mac;
+      let {
+        address,
+        batch,
+        channelTemplateId,
+        deviceId,
+        deviceNo,
+        labelIds,
+        manager,
+        phone,
+        postTime,
+        type,
+        schoolId,
+        serial,
+        schoolName,
+        ...args
+      } = this.form;
+      this.deviceOnAndOff(args);
     },
 
     // 提交设置开关时间
@@ -233,10 +281,10 @@ export default {
             this.addDeviceBind(args);
             console.log(1);
           } else {
-            // 设置开关时间
-            // let { ...args } = this.form;
-            let mac = this.form.mac;
-            this.deviceOnAndOff(mac);
+            // 设置班牌开/关时间
+            // console.log(this.form);
+            // this.deviceOnAndOff(uploadForm, config);
+            console.log(this.checkedweek);
           }
         }
       });
@@ -268,34 +316,36 @@ export default {
       }
     },
     //显示设备列表
-    async showDeviceList() {
-      let res = await service.showDeviceList(this.query);
+    async queryClassCardList() {
+      let res = await service.queryClassCardList(this.query);
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
-        console.log(this.tableData);
       }
     },
+
     //新增设备绑定
     async addDeviceBind(params = {}) {
       let res = await service.addDeviceBind(params);
       if (res.errorCode === 0) {
         this.dialogFormVisible = false;
         this.$refs.form.resetFields();
-        this.showDeviceList();
+        this.queryClassCardList();
       } else if (res.errorCode === -1) {
         //MAC码已存在
         this.$message({ message: `${res.errorMsg}`, type: "warning" });
         return false;
       }
     },
-    //设置开关时间
+    //查询开关机时间
     async deviceOnAndOff(params = {}) {
       let res = await service.deviceOnAndOff(params);
       if (res.errorCode === 0) {
-        console.log(res);
-        this.dialogFormVisible = false;
-        this.showDeviceList();
+        this.powerOnTime = res.data.powerOnTime;
+        this.powerOffTime = res.data.powerOffTime;
+        // this.queryClassCardList();
+        console.log(this.powerOnTime);
+        this.weekDays = res.data.weekDays;
       }
     },
 
@@ -303,13 +353,13 @@ export default {
     async deleteDeviceBind(deviceId) {
       let res = await service.deleteDeviceBind({ deviceId });
       if (res.errorCode === 0) {
-        this.showDeviceList();
+        this.queryClassCardList();
       }
     }
   },
   mounted() {
     this.queryLabel();
-    this.showDeviceList();
+    this.queryClassCardList();
   }
 };
 </script>
@@ -326,5 +376,10 @@ export default {
 .inOff {
   float: left;
   margin-left: 5px;
+}
+</style>
+<style lang="less">
+.el-checkbox__label {
+  padding-left: 2px;
 }
 </style>
