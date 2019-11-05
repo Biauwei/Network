@@ -97,6 +97,7 @@ import { isMac, isPhone } from "@/utils/validator";
 import { mapGetters } from "vuex";
 import QTable from "@/components/QTable";
 import pageMixins from "@/mixins/page";
+import ax from "axios";
 
 export default {
   name: "NfcManagement",
@@ -343,6 +344,22 @@ export default {
     },
 
     //显示设备列表
+    // async queryNfcAll() {
+    //   let data = {
+    //     page: this.currentPage,
+    //     pageSize: this.pagesize,
+    //     nfcId: this.query.searchNO,
+    //     nfcMac: this.query.searchID
+    //   };
+    //   console.log(data);
+    //   let res = await service.queryNfcAll(data, {});
+
+    //   if (res.errorCode === 0) {
+    //     console.log(res);
+    //     this.tableData = res.data.data;
+    //     this.totalCount = res.data.totalCount;
+    //   }
+    // }
     async queryNfcAll() {
       let data = {
         page: this.currentPage,
@@ -350,15 +367,12 @@ export default {
         nfcId: this.query.searchNO,
         nfcMac: this.query.searchID
       };
-
       let res = await service.queryNfcAll(data, {
         headers: { "Content-Type": "application/json" }
       });
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
-        console.log(this.totalCount);
-        console.log(this.tableData);
       }
     }
   },

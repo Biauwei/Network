@@ -1,3 +1,4 @@
+import ax from '../axios';
 // 批量导入Beacon库
 export function beaconBatch(params, config) {
   return ax.post('/action/mod-xiaojiao/weixin/punch/beaconBatch.do', params, config)

@@ -111,8 +111,13 @@
               }"
             >></el-time-select>
           </el-form-item>
-          <el-checkbox-group v-model="checkedweek" :min="1" :max="7" @checked="cheBtn(week)">
-            <el-checkbox v-for="week in cities" :label="week" :key="week">{{week}}</el-checkbox>
+          <el-checkbox-group v-model="checkedweek" :min="1" :max="7">
+            <el-checkbox
+              @change="checkedStatus(idx)"
+              v-for="(week,idx) in cities"
+              :label="week.label"
+              :key="idx"
+            ></el-checkbox>
           </el-checkbox-group>
         </el-form>
 
@@ -139,13 +144,13 @@ import pageMixins from "@/mixins/page";
 import axios from "axios";
 import qs from "qs";
 const weekOptions = [
-  "星期一",
-  "星期二",
-  "星期三",
-  "星期四",
-  "星期五",
-  "星期六",
-  "星期日"
+  { label: "星期一", day: "1", status: "0" },
+  { label: "星期二", day: "2", status: "0" },
+  { label: "星期三", day: "3", status: "0" },
+  { label: "星期四", day: "4", status: "0" },
+  { label: "星期五", day: "5", status: "0" },
+  { label: "星期六", day: "6", status: "0" },
+  { label: "星期日", day: "7", status: "0" }
 ];
 export default {
   name: "control",
@@ -163,11 +168,10 @@ export default {
       checkedweek: [],
       cities: weekOptions,
       weekDays: [],
-      checked: false,
       powerOnTime: "",
       powerOffTime: "",
       checkList: [],
-
+      checkedList: [],
       columns: [
         {
           label: "序号",
@@ -187,6 +191,7 @@ export default {
         }
       ],
       selected: "",
+      checked2: [],
       form: {
         regionId: [],
         labelIds: []
@@ -203,14 +208,12 @@ export default {
       schoolList: [],
       //请求的数据
       labelsList: [],
-      weekday: ""
+      weekday: "",
+      argsData: ""
     };
   },
   computed: {
-    ...mapGetters(["scopeType"]),
-    cheBtn(week) {
-      console.log(week);
-    }
+    ...mapGetters(["scopeType"])
   },
   methods: {
     handleCurrentChange(curr) {
@@ -234,7 +237,20 @@ export default {
         this.$refs.form.resetFields();
       });
     },
-
+    // 复选框选择
+    checkedStatus(idx) {
+      weekOptions[idx].status == "0"
+        ? (weekOptions[idx].status = "1")
+        : (weekOptions[idx].status = "0");
+      // checkedList
+      let weekData = weekOptions.map(item => {
+        return {
+          day: item.day,
+          status: item.status
+        };
+      });
+      this.checkedList = weekData;
+    },
     // 批量设置开关时间--wei
     handleAdd() {
       this.isShow = true;
@@ -251,7 +267,6 @@ export default {
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
       this.queryProvinceCityRegionBySchoolId(row.schoolId);
-      let mac = this.form.mac;
       let {
         address,
         batch,
@@ -279,15 +294,26 @@ export default {
             // 批量设置时间
             let { regionId, ...args } = this.form;
             this.addDeviceBind(args);
-            console.log(1);
           } else {
-            // 设置班牌开/关时间
-            // console.log(this.form);
-            // this.deviceOnAndOff(uploadForm, config);
-            console.log(this.checkedweek);
+            let data1 = {
+              powerOnTime: this.powerOnTime,
+              powerOffTime: this.powerOffTime,
+              mac: this.form.mac,
+              weekDays: JSON.stringify(this.checkedList)
+            };
+            this.saveOrUpdateCard(data1);
           }
         }
       });
+    },
+    async saveOrUpdateCard(params = {}) {
+      let res = await service.saveOrUpdateCard(params);
+      if (res.errorCode == 0) {
+        this.$message({ message: "设置成功", type: "warning" });
+        const timer = setTimeout(() => {
+          this.dialogFormVisible = false;
+        }, 1000);
+      }
     },
     //加载学校数据
     async queryRegion(value) {
@@ -343,9 +369,14 @@ export default {
       if (res.errorCode === 0) {
         this.powerOnTime = res.data.powerOnTime;
         this.powerOffTime = res.data.powerOffTime;
-        // this.queryClassCardList();
-        console.log(this.powerOnTime);
         this.weekDays = res.data.weekDays;
+        console.log(this.weekDays);
+        console.log(this.cities);
+        this.weekDays.forEach((item, index) => {
+          if (item.status === 0) {
+          } else {
+          }
+        });
       }
     },
 
@@ -360,6 +391,10 @@ export default {
   mounted() {
     this.queryLabel();
     this.queryClassCardList();
+  },
+  beforeDestroy() {
+    clearInterval(this.timer);
+    this.timer = null;
   }
 };
 </script>

@@ -22,21 +22,22 @@ export const constantRouterMap = [{
           title: "首页"
         }
       },
-      // {
-      //   path: '/nfcmanagement',
-      //   comment: 'nfcmanagement',
-      //   component: () =>
-      //     import('@/views/device/nfcmanagement'),
-      //   meta: {
-      //     title: 'NFC卡库管理'
-      //   }
-      // }
+      {
+        path: '/demo1',
+        comment: 'demo1',
+        component: () =>
+          import('@/views/demo1'),
+        meta: {
+          title: '虚拟键盘'
+
+        }
+      }
     ]
   },
   {
     path: '*',
     component: layout,
-    redirect: '/home',
+    redirect: '/demo1',
   }
 ]
 
