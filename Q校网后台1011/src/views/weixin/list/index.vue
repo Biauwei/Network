@@ -47,8 +47,8 @@
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 5)">成绩管理</el-button>
             <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 6)">课表管理</el-button>
             <el-button size="mini" type="primary" @click="punchTableBtn(scope.row.schoolId, 7)">考勤导出</el-button>
-            <!-- <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 7)">打卡统计</el-button>
-            <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 8)">打卡轨迹</el-button>-->
+            <!-- <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 7)">打卡统计</el-button> -->
+            <!-- <el-button size="mini" type="primary" @click="handleOpen(scope.row.schoolId, 8)">打卡轨迹</el-button> -->
           </template>
         </el-table-column>
       </el-table>

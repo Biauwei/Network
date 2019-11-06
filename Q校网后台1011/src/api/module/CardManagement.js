@@ -46,3 +46,9 @@ export function addNfcAll(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
+// nfc卡库导入
+export function nfcBatch(params, config) {
+  return ax.post('/action/mod-xiaojiao/weixin/punch/nfcBatch.do', params, config)
+    .then(res => res.data)
+    .catch(e => console.log(e));
+}

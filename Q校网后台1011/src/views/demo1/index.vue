@@ -11,14 +11,6 @@
 </template>
  
 <script>
-import service from "@/api";
-import region from "@/components/region";
-import regiont from "@/components/qxregion";
-import { isMac, isPhone } from "@/utils/validator";
-import { mapGetters } from "vuex";
-import QTable from "@/components/QTable";
-import pageMixins from "@/mixins/page";
-
 let draw;
 let canvasWidth;
 let canvasHeight;

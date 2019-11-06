@@ -14,20 +14,19 @@
           <el-form-item label="学校名称">
             <el-input v-model="query.schoolName"></el-input>
           </el-form-item>
-          <el-form-item label="班牌编号">
-            <el-input v-model="query.schoolName"></el-input>
-          </el-form-item>
+
           <el-form-item label="学生姓名">
-            <el-input v-model="query.schoolName"></el-input>
+            <el-input v-model="query.studentName"></el-input>
           </el-form-item>
           <el-form-item label="类别">
-            <el-select v-model="query.online" placeholder="全部">
-              <el-option label="NFC" value="NFC"></el-option>
-              <el-option label="lbeacon" value="lbeacon"></el-option>
+            <el-select v-model="query.punchType" placeholder="全部">
+              <el-option label="全部" value="9"></el-option>
+              <el-option label="NFC" value="0"></el-option>
+              <el-option label="lbeacon" value="1"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="NO">
-            <el-input v-model="query.schoolName"></el-input>
+          <el-form-item label="编号">
+            <el-input v-model="query.no"></el-input>
           </el-form-item>
           <el-form-item>
             <el-button icon="el-icon-search" type="primary" @click="handleSearch">查询</el-button>
@@ -61,60 +60,6 @@
         ></el-pagination>
       </div>
     </div>
-    <!-- 新增 or 编辑 -->
-    <template>
-      <el-dialog top="40px" :visible.sync="dialogFormVisible" @close="handleDialogClose">
-        <span slot="title" class="dialog-title">{{ isShow ? '新增': '编辑' }}</span>
-
-        <el-form ref="form" :model="form" status-icon size="small" :label-width="formLabelWidth">
-          <template v-if="isShow">
-            <el-form-item label="区域" prop="regionId">
-              <qx-region @last="queryRegion" v-model="form.regionId"></qx-region>
-            </el-form-item>
-          </template>
-          <template v-else>
-            <el-form-item label="区域">
-              <el-input v-model="selected" disabled></el-input>
-            </el-form-item>
-          </template>
-          <template v-if="isShow">
-            <el-form-item label="学校" prop="schoolId">
-              <el-select v-model="form.schoolId" clearable placeholder="请选择学校">
-                <el-option
-                  v-for="item in schoolList"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </template>
-          <template v-else>
-            <el-form-item label="学校">
-              <el-input v-model="form.schoolName" disabled></el-input>
-            </el-form-item>
-          </template>
-          <el-form-item label="类别">
-            <el-select v-model="query.online" placeholder="全部">
-              <el-option label="NFC" value="shanghai"></el-option>
-              <el-option label="lbeacon" value="beijing"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="MAC" prop="mac">
-            <el-input v-model="form.mac" placeholder="请输入MAC"></el-input>
-          </el-form-item>
-          <el-form-item label="NO" prop="phone">
-            <el-input v-model="form.phone" placeholder="请输入编号"></el-input>
-          </el-form-item>
-        </el-form>
-
-        <!-- 取消提交按钮 -->
-        <span slot="footer" class="dialog-footer">
-          <el-button size="small" @click="dialogFormVisible = false">取消</el-button>
-          <el-button size="small" type="primary" @click="submitForm('form')">确定</el-button>
-        </span>
-      </el-dialog>
-    </template>
   </div>
 </template>
 <script>
@@ -143,34 +88,26 @@ export default {
       value2: new Date(),
       columns: [
         {
-          label: "序号",
-          prop: "deviceId"
-        },
-        {
           label: "学校名称",
           prop: "schoolName"
         },
         {
-          label: "设备编号",
-          prop: "equipment"
-        },
-        {
           label: "类别",
-          prop: "schoolName"
+          prop: "punchType"
         },
         {
           label: "学生姓名",
-          prop: "studentname"
+          prop: "studentName"
         },
         {
-          label: "NO",
-          prop: "deviceNo"
+          label: "编号",
+          prop: "no"
         },
         {
-          label: "ID/MAC",
+          label: "MAC",
           prop: "mac"
         },
-        { label: "时间", prop: "time" }
+        { label: "时间", prop: "postTime" }
       ],
       selected: "",
       form: {
@@ -181,6 +118,9 @@ export default {
       //默认参数
       query: {
         schoolName: "",
+        studentName: "",
+        no: "",
+        punchType: 9,
         scopeType: this.$store.getters.scopeType,
         scopeId: this.$store.getters.scopeId
       },
@@ -198,15 +138,15 @@ export default {
   methods: {
     handleCurrentChange(curr) {
       this.query.page = curr;
-      this.showDeviceList();
+      this.queryPunchList();
     },
     handleSizeChange(size) {
       this.query.pageSize = size;
-      this.showDeviceList();
+      this.queryPunchList();
     },
     //搜索
     handleSearch() {
-      this.showDeviceList();
+      this.queryPunchList();
     },
     handleRegionChange(queryId, queryType) {
       this.query.scopeId = queryId;
@@ -231,20 +171,6 @@ export default {
       this.form = Object.assign({}, row);
       this.queryProvinceCityRegionBySchoolId(row.schoolId);
     },
-    // handleDel(row) {
-    //   this.$confirm(`确定删除吗?`, "提示", {
-    //     confirmButtonText: "确定",
-    //     cancelButtonText: "取消",
-    //     type: "warning"
-    //   })
-    //     .then(() => {
-    //       this.deleteDeviceBind(row.deviceId);
-    //     })
-    //     .catch(error => {
-    //       return false;
-    //     });
-    // },
-
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
@@ -259,24 +185,24 @@ export default {
       });
     },
     //加载学校数据
-    async queryRegion(value) {
-      this.form.regionId = value;
-      let last = value[value.length - 1];
-      let res = await service.queryRegion({ queryId: last, queryType: 3 });
-      if (res.errorCode === 0) {
-        this.schoolList = res.data;
-      } else {
-        return false;
-      }
-    },
-    //根据学校Id查询区域
-    async queryProvinceCityRegionBySchoolId(schoolId) {
-      let res = await service.queryProvinceCityRegionBySchoolId({ schoolId });
-      if (res.errorCode === 0) {
-        let { province, city, region } = res.data[0];
-        this.selected = `${province} / ${city} / ${region}`;
-      }
-    },
+    // async queryRegion(value) {
+    //   this.form.regionId = value;
+    //   let last = value[value.length - 1];
+    //   let res = await service.queryRegion({ queryId: last, queryType: 3 });
+    //   if (res.errorCode === 0) {
+    //     this.schoolList = res.data;
+    //   } else {
+    //     return false;
+    //   }
+    // },
+    // //根据学校Id查询区域
+    // async queryProvinceCityRegionBySchoolId(schoolId) {
+    //   let res = await service.queryProvinceCityRegionBySchoolId({ schoolId });
+    //   if (res.errorCode === 0) {
+    //     let { province, city, region } = res.data[0];
+    //     this.selected = `${province} / ${city} / ${region}`;
+    //   }
+    // },
     //查询标签
     async queryLabel() {
       let res = await service.queryLabel({ queryType: 3 });
@@ -285,45 +211,30 @@ export default {
       }
     },
     //显示设备列表
-    async showDeviceList() {
-      let res = await service.showDeviceList(this.query);
+    async queryPunchList() {
+      let arr = {
+        studentName: this.query.studentName,
+        schoolName: this.query.schoolName,
+        number: this.query.no,
+        type: this.query.punchType,
+        page: this.query.page,
+        pageSize: this.query.pageSize
+      };
+
+      console.log(arr);
+
+      console.log(this.query);
+      let res = await service.queryPunchList(arr);
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
-      }
-    },
-    //新增设备绑定
-    async addDeviceBind(params = {}) {
-      let res = await service.addDeviceBind(params);
-      if (res.errorCode === 0) {
-        this.dialogFormVisible = false;
-        this.$refs.form.resetFields();
-        this.showDeviceList();
-      } else if (res.errorCode === -1) {
-        //MAC码已存在
-        this.$message({ message: `${res.errorMsg}`, type: "warning" });
-        return false;
-      }
-    },
-    //编辑设备绑定
-    async updateDeviceBind(params = {}) {
-      let res = await service.updateDeviceBind(params);
-      if (res.errorCode === 0) {
-        this.dialogFormVisible = false;
-        this.showDeviceList();
-      }
-    },
-    //删除设备绑定
-    async deleteDeviceBind(deviceId) {
-      let res = await service.deleteDeviceBind({ deviceId });
-      if (res.errorCode === 0) {
-        this.showDeviceList();
+        console.log(this.tableData);
       }
     }
   },
   mounted() {
     this.queryLabel();
-    this.showDeviceList();
+    this.queryPunchList();
   }
 };
 </script>

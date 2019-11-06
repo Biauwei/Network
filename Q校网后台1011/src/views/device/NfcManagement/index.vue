@@ -173,7 +173,7 @@ export default {
         let uploadForm = new FormData();
         uploadForm.append("file", file);
         // uploadForm.append("schoolId", schoolId);
-        let res = await service.beaconBatch(uploadForm, config);
+        let res = await service.nfcBatch(uploadForm, config);
         if (res.errorCode === 0) {
           this.$alert("导入成功", "提示", {
             confirmButtonText: "确定",

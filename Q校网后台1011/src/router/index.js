@@ -22,22 +22,22 @@ export const constantRouterMap = [{
           title: "首页"
         }
       },
-      {
-        path: '/demo1',
-        comment: 'demo1',
-        component: () =>
-          import('@/views/demo1'),
-        meta: {
-          title: '虚拟键盘'
+      // {
+      //   path: '/demo1',
+      //   comment: 'demo1',
+      //   component: () =>
+      //     import('@/views/demo1'),
+      //   meta: {
+      //     title: '虚拟键盘'
 
-        }
-      }
+      //   }
+      // }
     ]
   },
   {
     path: '*',
     component: layout,
-    redirect: '/demo1',
+    redirect: '/home',
   }
 ]
 

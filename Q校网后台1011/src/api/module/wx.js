@@ -67,3 +67,9 @@ export function classStatistics(params, config) {
     .then(res => res.data)
     .catch(e => console.log(e));
 }
+//打卡统计
+export function queryPunchList(params, config) {
+  return ax.post('/action/mod-xiaojiao/weixin/punch/queryPunchList.do', params, config)
+    .then(res => res.data)
+    .catch(e => console.log(e));
+}

@@ -19,3 +19,9 @@ export function saveOrUpdateCard(params) {
     .then(res => res.data)
     .catch(e => console.log(e))
 }
+// 批量设置班牌开/关机时间
+export function batchSetUp(params) {
+  return ax.post('/action/mod-xiaojiao/device/batchSetUp.do', params)
+    .then(res => res.data)
+    .catch(e => console.log(e))
+}

@@ -18,12 +18,12 @@
             <el-input v-model="query.schoolName" placeholder="请输入学校名称"></el-input>
           </el-form-item>
 
-          <el-form-item label="状态">
+          <!-- <el-form-item label="状态">
             <el-select v-model="query.online" placeholder="全部">
               <el-option label="离线" value="shanghai"></el-option>
               <el-option label="在线" value="beijing"></el-option>
             </el-select>
-          </el-form-item>
+          </el-form-item>-->
           <el-form-item>
             <el-button icon="el-icon-search" type="primary" @click="handleSearch">查询</el-button>
             <el-button icon="el-icon-plus" type="primary" @click="handleAdd">批量设置开关机</el-button>
@@ -77,10 +77,10 @@
             <el-form-item label="学校名称" prop="schoolId">
               <el-select v-model="form.schoolId" clearable placeholder="请选择学校">
                 <el-option
-                  v-for="item in schoolList"
-                  :key="item.id"
+                  v-for="(item,idx) in schoolList"
+                  :key="idx"
                   :label="item.name"
-                  :value="item.id"
+                  :value="item.schoolId"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -91,7 +91,17 @@
             </el-form-item>
           </template>
 
-          <el-form-item label="开机时间">
+          <el-form-item label="开机时间" v-if="isShow">
+            <el-time-select
+              v-model="bacthPowerOnTime"
+              :picker-options="{
+              start: '00:00',
+              step: '00:01',
+              end: '23:59',
+              }"
+            ></el-time-select>
+          </el-form-item>
+          <el-form-item label="开机时间" v-else>
             <el-time-select
               v-model="powerOnTime"
               :picker-options="{
@@ -101,7 +111,17 @@
               }"
             ></el-time-select>
           </el-form-item>
-          <el-form-item label="关机时间">
+          <el-form-item label="关机时间" v-if="isShow">
+            <el-time-select
+              v-model="bacthPowerOffTime"
+              :picker-options="{
+              start: '00:00',
+              step: '00:01',
+              end: '23:59',
+              }"
+            >></el-time-select>
+          </el-form-item>
+          <el-form-item label="关机时间" v-else>
             <el-time-select
               v-model="powerOffTime"
               :picker-options="{
@@ -111,12 +131,21 @@
               }"
             >></el-time-select>
           </el-form-item>
-          <el-checkbox-group v-model="checkedweek" :min="1" :max="7">
+          <el-checkbox-group v-if="isShow" v-model="bacthCheck">
+            <el-checkbox
+              v-for="(item,index) in options"
+              :label="item.label"
+              :key="index"
+              @change="bacthCheckedStatus(index)"
+            ></el-checkbox>
+          </el-checkbox-group>
+          <el-checkbox-group v-model="checkedweek" v-else>
             <el-checkbox
               @change="checkedStatus(idx)"
               v-for="(week,idx) in cities"
               :label="week.label"
               :key="idx"
+              :checked="Boolean(week.status)"
             ></el-checkbox>
           </el-checkbox-group>
         </el-form>
@@ -143,15 +172,7 @@ import QTable from "@/components/QTable";
 import pageMixins from "@/mixins/page";
 import axios from "axios";
 import qs from "qs";
-const weekOptions = [
-  { label: "星期一", day: "1", status: "0" },
-  { label: "星期二", day: "2", status: "0" },
-  { label: "星期三", day: "3", status: "0" },
-  { label: "星期四", day: "4", status: "0" },
-  { label: "星期五", day: "5", status: "0" },
-  { label: "星期六", day: "6", status: "0" },
-  { label: "星期日", day: "7", status: "0" }
-];
+
 export default {
   name: "control",
   components: {
@@ -165,8 +186,22 @@ export default {
       formInline: {
         region: ""
       },
+      bacthPowerOffTime: "",
+      bacthPowerOnTime: "",
+      chcthCheckedList: "",
+      bacthCheck: [],
+      options: [
+        { label: "星期一", day: "1", status: 0 },
+        { label: "星期二", day: "2", status: 0 },
+        { label: "星期三", day: "3", status: 0 },
+        { label: "星期四", day: "4", status: 0 },
+        { label: "星期五", day: "5", status: 0 },
+        { label: "星期六", day: "6", status: 0 },
+        { label: "星期日", day: "7", status: 0 }
+      ],
       checkedweek: [],
-      cities: weekOptions,
+      cn: ["一", "二", "三", "四", "五", "六", "七"],
+      cities: [],
       weekDays: [],
       powerOnTime: "",
       powerOffTime: "",
@@ -191,11 +226,12 @@ export default {
         }
       ],
       selected: "",
-      checked2: [],
+      checked2: false,
       form: {
         regionId: [],
         labelIds: []
       },
+      inject: ["reload"],
       //默认参数
       query: {
         schoolName: "",
@@ -237,13 +273,27 @@ export default {
         this.$refs.form.resetFields();
       });
     },
-    // 复选框选择
+
+    // 批量设置(复选框选择)
+    bacthCheckedStatus(index) {
+      this.options[index].status == 0
+        ? (this.options[index].status = "1")
+        : (this.options[index].status = "0");
+      let chcthDdta = this.options.map(item => {
+        return {
+          day: item.day,
+          status: item.status
+        };
+      });
+      this.chcthCheckedList = chcthDdta;
+    },
+    // 单个设置(复选框选择)
     checkedStatus(idx) {
-      weekOptions[idx].status == "0"
-        ? (weekOptions[idx].status = "1")
-        : (weekOptions[idx].status = "0");
+      this.cities[idx].status == "0"
+        ? (this.cities[idx].status = "1")
+        : (this.cities[idx].status = "0");
       // checkedList
-      let weekData = weekOptions.map(item => {
+      let weekData = this.cities.map(item => {
         return {
           day: item.day,
           status: item.status
@@ -251,7 +301,7 @@ export default {
       });
       this.checkedList = weekData;
     },
-    // 批量设置开关时间--wei
+
     handleAdd() {
       this.isShow = true;
       this.dialogFormVisible = true;
@@ -261,7 +311,7 @@ export default {
       };
     },
 
-    // 查询设备开关时间--wei
+    // 查询设备开关时间
     handleEdit(row) {
       this.isShow = false;
       this.dialogFormVisible = true;
@@ -291,10 +341,16 @@ export default {
       this.$refs[formName].validate(valid => {
         if (valid) {
           if (this.isShow) {
-            // 批量设置时间
-            let { regionId, ...args } = this.form;
-            this.addDeviceBind(args);
-          } else {
+            // 批量设置开/关机
+            console.log(this.query);
+            let SetUp = {
+              schoolId: 36,
+              powerOnTime: this.bacthPowerOnTime,
+              powerOffTime: this.bacthPowerOffTime,
+              weekDays: JSON.stringify(this.chcthCheckedList)
+            };
+            this.batchSetUp(SetUp);
+          } else if (!this.isShow) {
             let data1 = {
               powerOnTime: this.powerOnTime,
               powerOffTime: this.powerOffTime,
@@ -306,13 +362,30 @@ export default {
         }
       });
     },
+    // 批量设置开/关机
+    async batchSetUp(params = {}) {
+      let res = await service.batchSetUp(params);
+      if (res.errorCode == 0) {
+        this.$message({ message: "批量设置成功!", type: "warning" });
+        const timer = setTimeout(() => {
+          this.dialogFormVisible = false;
+        }, 100);
+      } else {
+        this.$message({ message: "批量设置失败!", type: "warning" });
+      }
+    },
+    // 单个设置开/关机
     async saveOrUpdateCard(params = {}) {
       let res = await service.saveOrUpdateCard(params);
       if (res.errorCode == 0) {
-        this.$message({ message: "设置成功", type: "warning" });
+        this.$message({ message: "设置成功!", type: "warning" });
         const timer = setTimeout(() => {
           this.dialogFormVisible = false;
-        }, 1000);
+          // this.reload();
+        }, 100);
+      } else {
+        this.$message({ message: "设置失败!", type: "warning" });
+        // this.reload();
       }
     },
     //加载学校数据
@@ -350,41 +423,21 @@ export default {
       }
     },
 
-    //新增设备绑定
-    async addDeviceBind(params = {}) {
-      let res = await service.addDeviceBind(params);
-      if (res.errorCode === 0) {
-        this.dialogFormVisible = false;
-        this.$refs.form.resetFields();
-        this.queryClassCardList();
-      } else if (res.errorCode === -1) {
-        //MAC码已存在
-        this.$message({ message: `${res.errorMsg}`, type: "warning" });
-        return false;
-      }
-    },
     //查询开关机时间
     async deviceOnAndOff(params = {}) {
       let res = await service.deviceOnAndOff(params);
       if (res.errorCode === 0) {
         this.powerOnTime = res.data.powerOnTime;
         this.powerOffTime = res.data.powerOffTime;
-        this.weekDays = res.data.weekDays;
-        console.log(this.weekDays);
-        console.log(this.cities);
-        this.weekDays.forEach((item, index) => {
-          if (item.status === 0) {
-          } else {
-          }
+        let arr = res.data.weekDays;
+        let arrList = arr.map((item, idx) => {
+          return {
+            day: item.day,
+            status: item.status,
+            label: "星期" + this.cn[idx]
+          };
         });
-      }
-    },
-
-    //删除设备绑定
-    async deleteDeviceBind(deviceId) {
-      let res = await service.deleteDeviceBind({ deviceId });
-      if (res.errorCode === 0) {
-        this.queryClassCardList();
+        this.cities = arrList;
       }
     }
   },
