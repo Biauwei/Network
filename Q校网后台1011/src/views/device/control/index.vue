@@ -18,12 +18,6 @@
             <el-input v-model="query.schoolName" placeholder="请输入学校名称"></el-input>
           </el-form-item>
 
-          <!-- <el-form-item label="状态">
-            <el-select v-model="query.online" placeholder="全部">
-              <el-option label="离线" value="shanghai"></el-option>
-              <el-option label="在线" value="beijing"></el-option>
-            </el-select>
-          </el-form-item>-->
           <el-form-item>
             <el-button icon="el-icon-search" type="primary" @click="handleSearch">查询</el-button>
             <el-button icon="el-icon-plus" type="primary" @click="handleAdd">批量设置开关机</el-button>
@@ -34,10 +28,10 @@
     <div class="page-bd">
       <!-- 表格数据 -->
       <base-table :data="tableData" :columns="columns">
-        <el-table-column label="控制" width="400">
+        <el-table-column label="控制" width="300">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">设置开/关机时间</el-button>
-            <el-button size="mini" type="danger">重启</el-button>
+            <!-- <el-button size="mini" type="danger">重启</el-button> -->
           </template>
         </el-table-column>
       </base-table>
@@ -74,13 +68,13 @@
             </el-form-item>
           </template>
           <template v-if="isShow">
-            <el-form-item label="学校名称" prop="schoolId">
-              <el-select v-model="form.schoolId" clearable placeholder="请选择学校">
+            <el-form-item label="学校名称" prop="schoolName">
+              <el-select @change="schoolType" v-model="form.schoolName" placeholder="请选择学校">
                 <el-option
                   v-for="(item,idx) in schoolList"
                   :key="idx"
                   :label="item.name"
-                  :value="item.schoolId"
+                  :value="item.id"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -93,7 +87,7 @@
 
           <el-form-item label="开机时间" v-if="isShow">
             <el-time-select
-              v-model="bacthPowerOnTime"
+              v-model="form.bacthPowerOnTime"
               :picker-options="{
               start: '00:00',
               step: '00:01',
@@ -103,7 +97,7 @@
           </el-form-item>
           <el-form-item label="开机时间" v-else>
             <el-time-select
-              v-model="powerOnTime"
+              v-model="form2.powerOnTime"
               :picker-options="{
               start: '00:00',
               step: '00:01',
@@ -113,7 +107,7 @@
           </el-form-item>
           <el-form-item label="关机时间" v-if="isShow">
             <el-time-select
-              v-model="bacthPowerOffTime"
+              v-model="form.bacthPowerOffTime"
               :picker-options="{
               start: '00:00',
               step: '00:01',
@@ -123,7 +117,7 @@
           </el-form-item>
           <el-form-item label="关机时间" v-else>
             <el-time-select
-              v-model="powerOffTime"
+              v-model="form2.powerOffTime"
               :picker-options="{
               start: '00:00',
               step: '00:01',
@@ -131,7 +125,7 @@
               }"
             >></el-time-select>
           </el-form-item>
-          <el-checkbox-group v-if="isShow" v-model="bacthCheck">
+          <el-checkbox-group v-if="isShow" v-model="form.bacthCheck">
             <el-checkbox
               v-for="(item,index) in options"
               :label="item.label"
@@ -145,14 +139,12 @@
               v-for="(week,idx) in cities"
               :label="week.label"
               :key="idx"
-              :checked="Boolean(week.status)"
             ></el-checkbox>
           </el-checkbox-group>
         </el-form>
-
         <!-- 取消提交按钮 -->
         <span slot="footer" class="dialog-footer">
-          <el-button size="small" @click="dialogFormVisible = false">取消</el-button>
+          <el-button size="small" @click="cancel">取消</el-button>
           <el-button size="small" type="primary" @click="submitForm('form')">确定</el-button>
         </span>
       </el-dialog>
@@ -186,10 +178,8 @@ export default {
       formInline: {
         region: ""
       },
-      bacthPowerOffTime: "",
-      bacthPowerOnTime: "",
+
       chcthCheckedList: "",
-      bacthCheck: [],
       options: [
         { label: "星期一", day: "1", status: 0 },
         { label: "星期二", day: "2", status: 0 },
@@ -200,13 +190,13 @@ export default {
         { label: "星期日", day: "7", status: 0 }
       ],
       checkedweek: [],
-      cn: ["一", "二", "三", "四", "五", "六", "七"],
+      cn: ["一", "二", "三", "四", "五", "六", "日"],
       cities: [],
       weekDays: [],
-      powerOnTime: "",
-      powerOffTime: "",
+
       checkList: [],
       checkedList: [],
+      OnTime: "",
       columns: [
         {
           label: "序号",
@@ -229,8 +219,17 @@ export default {
       checked2: false,
       form: {
         regionId: [],
-        labelIds: []
+        labelIds: [],
+        bacthCheck: [],
+        schoolName: [],
+        bacthPowerOffTime: "",
+        bacthPowerOnTime: ""
       },
+      form2: {
+        powerOnTime: "",
+        powerOffTime: ""
+      },
+
       inject: ["reload"],
       //默认参数
       query: {
@@ -245,13 +244,35 @@ export default {
       //请求的数据
       labelsList: [],
       weekday: "",
-      argsData: ""
+      argsData: "",
+      SelectSchool: ""
     };
   },
   computed: {
     ...mapGetters(["scopeType"])
   },
+  mounted() {
+    this.queryLabel();
+    this.queryClassCardList();
+  },
+  beforeDestroy() {
+    clearInterval(this.timer);
+    this.timer = null;
+  },
+
   methods: {
+    cancel() {
+      this.checkedweek = [];
+      this.dialogFormVisible = false;
+    },
+    schoolType(e) {
+      let obj = {};
+      obj = this.schoolList.find(item => {
+        return item.id === e;
+      });
+      this.SelectSchool = obj;
+    },
+
     handleCurrentChange(curr) {
       this.query.page = curr;
       this.queryClassCardList();
@@ -289,10 +310,10 @@ export default {
     },
     // 单个设置(复选框选择)
     checkedStatus(idx) {
+      // console.log("checkedweek", this.checkedweek);
       this.cities[idx].status == "0"
         ? (this.cities[idx].status = "1")
         : (this.cities[idx].status = "0");
-      // checkedList
       let weekData = this.cities.map(item => {
         return {
           day: item.day,
@@ -307,12 +328,17 @@ export default {
       this.dialogFormVisible = true;
       this.form = {
         regionId: [],
-        labelIds: []
+        labelIds: [],
+        schoolName: [],
+        bacthCheck: [],
+        bacthPowerOffTime: "",
+        bacthPowerOnTime: ""
       };
     },
 
     // 查询设备开关时间
     handleEdit(row) {
+      this.checkedweek = [];
       this.isShow = false;
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
@@ -342,18 +368,18 @@ export default {
         if (valid) {
           if (this.isShow) {
             // 批量设置开/关机
-            console.log(this.query);
             let SetUp = {
-              schoolId: 36,
-              powerOnTime: this.bacthPowerOnTime,
-              powerOffTime: this.bacthPowerOffTime,
+              schoolId: this.SelectSchool.id,
+              powerOnTime: this.form.bacthPowerOnTime,
+              powerOffTime: this.form.bacthPowerOffTime,
               weekDays: JSON.stringify(this.chcthCheckedList)
             };
+
             this.batchSetUp(SetUp);
           } else if (!this.isShow) {
             let data1 = {
-              powerOnTime: this.powerOnTime,
-              powerOffTime: this.powerOffTime,
+              powerOnTime: this.form2.powerOnTime,
+              powerOffTime: this.form2.powerOffTime,
               mac: this.form.mac,
               weekDays: JSON.stringify(this.checkedList)
             };
@@ -395,6 +421,7 @@ export default {
       let res = await service.queryRegion({ queryId: last, queryType: 3 });
       if (res.errorCode === 0) {
         this.schoolList = res.data;
+        console.log(this.schoolList);
       } else {
         return false;
       }
@@ -427,8 +454,8 @@ export default {
     async deviceOnAndOff(params = {}) {
       let res = await service.deviceOnAndOff(params);
       if (res.errorCode === 0) {
-        this.powerOnTime = res.data.powerOnTime;
-        this.powerOffTime = res.data.powerOffTime;
+        this.form2.powerOnTime = res.data.powerOnTime;
+        this.form2.powerOffTime = res.data.powerOffTime;
         let arr = res.data.weekDays;
         let arrList = arr.map((item, idx) => {
           return {
@@ -438,16 +465,14 @@ export default {
           };
         });
         this.cities = arrList;
+        // console.log(this.cities);
+        for (let i = 0; i < arrList.length; i++) {
+          if (arrList[i].status) {
+            this.checkedweek.push(arrList[i].label);
+          }
+        }
       }
     }
-  },
-  mounted() {
-    this.queryLabel();
-    this.queryClassCardList();
-  },
-  beforeDestroy() {
-    clearInterval(this.timer);
-    this.timer = null;
   }
 };
 </script>

@@ -20,7 +20,7 @@
           </el-form-item>
           <el-form-item label="类别">
             <el-select v-model="query.punchType" placeholder="全部">
-              <el-option label="全部" value="9"></el-option>
+              <el-option label="全部" value="全部"></el-option>
               <el-option label="NFC" value="0"></el-option>
               <el-option label="lbeacon" value="1"></el-option>
             </el-select>
@@ -114,13 +114,13 @@ export default {
         regionId: [],
         labelIds: []
       },
-
+      punchType2: "",
       //默认参数
       query: {
         schoolName: "",
         studentName: "",
         no: "",
-        punchType: 9,
+        punchType: "全部",
         scopeType: this.$store.getters.scopeType,
         scopeId: this.$store.getters.scopeId
       },
@@ -212,23 +212,35 @@ export default {
     },
     //显示设备列表
     async queryPunchList() {
-      let arr = {
-        studentName: this.query.studentName,
-        schoolName: this.query.schoolName,
-        number: this.query.no,
-        type: this.query.punchType,
-        page: this.query.page,
-        pageSize: this.query.pageSize
-      };
-
-      console.log(arr);
-
-      console.log(this.query);
-      let res = await service.queryPunchList(arr);
-      if (res.errorCode === 0) {
-        this.tableData = res.data.data;
-        this.totalCount = res.data.totalCount;
-        console.log(this.tableData);
+      if (this.query.punchType == "全部") {
+        this.punchType2 = 9;
+        let arr = {
+          studentName: this.query.studentName,
+          schoolName: this.query.schoolName,
+          number: this.query.no,
+          type: this.punchType2,
+          page: this.query.page,
+          pageSize: this.query.pageSize
+        };
+        let res = await service.queryPunchList(arr);
+        if (res.errorCode === 0) {
+          this.tableData = res.data.data;
+          this.totalCount = res.data.totalCount;
+        }
+      } else {
+        let arr = {
+          studentName: this.query.studentName,
+          schoolName: this.query.schoolName,
+          number: this.query.no,
+          type: this.query.punchType,
+          page: this.query.page,
+          pageSize: this.query.pageSize
+        };
+        let res = await service.queryPunchList(arr);
+        if (res.errorCode === 0) {
+          this.tableData = res.data.data;
+          this.totalCount = res.data.totalCount;
+        }
       }
     }
   },
