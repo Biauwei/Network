@@ -1,6 +1,13 @@
 <template>
   <div class="page">
     <div class="page-hd">
+      <!-- <el-table
+        v-loading="loading"
+        element-loading-text="正在导入..."
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+        style="width: 100%"
+      ></el-table>-->
       <!-- 表单 -->
       <div class="page-form">
         <el-form
@@ -11,10 +18,10 @@
           label-width="70px"
           label-position="left"
         >
-          <el-form-item label="ID">
+          <el-form-item label="NO">
             <el-input v-model="query.searchNO" ref="searchNO"></el-input>
           </el-form-item>
-          <el-form-item label="NO">
+          <el-form-item label="ID">
             <el-input v-model="query.searchID" ref="searchID"></el-input>
           </el-form-item>
 
@@ -41,14 +48,19 @@
     </div>
     <div class="page-bd">
       <!-- 表格数据 -->
-      <base-table :data="tableData" :columns="columns">
-        <el-table-column label="操作" width="400">
+      <!-- <el-table-column type="index" label="序号" width="80"></el-table-column> -->
+
+      <el-table :data="tableData" style="width: 100%">
+        <el-table-column type="index" label="序号" width="200"></el-table-column>
+        <el-table-column prop="nfcId" label="NO"></el-table-column>
+        <el-table-column prop="nfcMac" label="ID"></el-table-column>
+        <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="mini" type="danger" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-      </base-table>
+      </el-table>
     </div>
     <div class="page-ft">
       <!-- 分页 -->
@@ -71,7 +83,7 @@
         <span slot="title" class="dialog-title">{{ !idShow ? '新增': '编辑' }}</span>
         <el-form ref="form" :model="form" status-icon size="small" :label-width="formLabelWidth">
           <el-form-item label="序号" prop="id" v-if="idShow">
-            <el-input v-model="form.id"></el-input>
+            <el-input v-model="form.id" disabled></el-input>
           </el-form-item>
           <el-form-item label="ID">
             <el-input v-model="form.nfcId" placeholder="请输入ID"></el-input>
@@ -112,29 +124,16 @@ export default {
       formInline: {
         region: ""
       },
+      loading: false,
       idShow: false,
       value1: new Date(),
       value2: new Date(),
-      columns: [
-        {
-          label: "序号",
-          prop: "id"
-        },
-        {
-          label: "ID",
-          prop: "nfcId"
-        },
-        {
-          label: "NO",
-          prop: "nfcMac"
-        }
-      ],
       selected: "",
       form: {
         regionId: [],
         labelIds: []
       },
-
+      // loading: false,
       //默认参数
       query: {
         searchID: "",
@@ -179,7 +178,6 @@ export default {
             confirmButtonText: "确定",
             type: "success"
           });
-          // this.queryTeachers(this.query);
           this.queryNfcAll();
         }
       }
@@ -343,23 +341,6 @@ export default {
       }
     },
 
-    //显示设备列表
-    // async queryNfcAll() {
-    //   let data = {
-    //     page: this.currentPage,
-    //     pageSize: this.pagesize,
-    //     nfcId: this.query.searchNO,
-    //     nfcMac: this.query.searchID
-    //   };
-    //   console.log(data);
-    //   let res = await service.queryNfcAll(data, {});
-
-    //   if (res.errorCode === 0) {
-    //     console.log(res);
-    //     this.tableData = res.data.data;
-    //     this.totalCount = res.data.totalCount;
-    //   }
-    // }
     async queryNfcAll() {
       let data = {
         page: this.currentPage,

@@ -27,14 +27,18 @@
     </div>
     <div class="page-bd">
       <!-- 表格数据 -->
-      <base-table :data="tableData" :columns="columns">
+      <el-table :data="tableData">
+        <el-table-column type="index" label="序号" width="200"></el-table-column>
+        <el-table-column prop="schoolName" label="学校名称"></el-table-column>
+        <el-table-column prop="deviceNo" label="设备编号"></el-table-column>
+        <el-table-column prop="mac" label="MAC地址"></el-table-column>
         <el-table-column label="控制" width="300">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">设置开/关机时间</el-button>
             <!-- <el-button size="mini" type="danger">重启</el-button> -->
           </template>
         </el-table-column>
-      </base-table>
+      </el-table>
     </div>
     <div class="page-ft">
       <!-- 分页 -->
@@ -197,24 +201,6 @@ export default {
       checkList: [],
       checkedList: [],
       OnTime: "",
-      columns: [
-        {
-          label: "序号",
-          prop: "deviceId"
-        },
-        {
-          label: "学校名称",
-          prop: "schoolName"
-        },
-        {
-          label: "设备编号",
-          prop: "deviceNo"
-        },
-        {
-          label: "MAC地址",
-          prop: "mac"
-        }
-      ],
       selected: "",
       checked2: false,
       form: {

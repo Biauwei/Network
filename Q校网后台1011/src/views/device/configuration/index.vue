@@ -29,14 +29,20 @@
     </div>
     <div class="page-bd">
       <!-- 表格数据 -->
-      <base-table :data="tableData" :columns="columns">
+      <el-table :data="tableData" style="width: 100%">
+        <el-table-column type="index" label="序号" width="200"></el-table-column>
+        <el-table-column prop="schoolName" label="学校名称"></el-table-column>
+        <el-table-column prop="deviceNo" label="设备编号"></el-table-column>
+        <el-table-column prop="apMac" label="设备MAC"></el-table-column>
+        <el-table-column prop="postTime" label="配置时间"></el-table-column>
+        <el-table-column prop="type" label="节点类型"></el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="mini" type="danger" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-      </base-table>
+      </el-table>
     </div>
     <div class="page-ft">
       <!-- 分页 -->
@@ -154,32 +160,6 @@ export default {
       radio: 3,
       deviceNo: "",
       deviceBack: "",
-      columns: [
-        {
-          label: "序号",
-          prop: "id"
-        },
-        {
-          label: "学校名称",
-          prop: "schoolName"
-        },
-        {
-          label: "设备编号",
-          prop: "deviceNo"
-        },
-        {
-          label: "设备MAC",
-          prop: "apMac"
-        },
-        {
-          label: "配置时间",
-          prop: "postTime"
-        },
-        {
-          label: "节点类型",
-          prop: "type"
-        }
-      ],
       selected: "",
       form: {
         regionId: [],

@@ -41,14 +41,17 @@
     </div>
     <div class="page-bd">
       <!-- 表格数据 -->
-      <base-table :data="tableData" :columns="columns">
-        <el-table-column label="操作" width="400">
+      <el-table :data="tableData" style="width: 100%">
+        <el-table-column type="index" label="序号" width="200"></el-table-column>
+        <el-table-column prop="beaconMac" label="MAC"></el-table-column>
+        <el-table-column prop="beaconId" label="NO"></el-table-column>
+        <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="mini" type="danger" @click="handleDel(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-      </base-table>
+      </el-table>
     </div>
     <div class="page-ft">
       <!-- 分页 -->
@@ -71,7 +74,7 @@
         <span slot="title" class="dialog-title">{{ !idShow ? '新增': '编辑' }}</span>
         <el-form ref="form" :model="form" status-icon size="small" :label-width="formLabelWidth">
           <el-form-item label="序号" prop="id" v-if="idShow">
-            <el-input v-model="form.id"></el-input>
+            <el-input v-model="form.id" disabled></el-input>
           </el-form-item>
           <el-form-item label="MAC" prop="mac">
             <el-input v-model="form.beaconMac" placeholder="请输入MAC"></el-input>
@@ -114,20 +117,6 @@ export default {
       idShow: false,
       value1: new Date(),
       value2: new Date(),
-      columns: [
-        {
-          label: "序号",
-          prop: "id"
-        },
-        {
-          label: "MAC",
-          prop: "beaconMac"
-        },
-        {
-          label: "NO",
-          prop: "beaconId"
-        }
-      ],
       selected: "",
       form: {
         regionId: [],
@@ -356,6 +345,7 @@ export default {
       if (res.errorCode === 0) {
         this.tableData = res.data.data;
         this.totalCount = res.data.totalCount;
+        console.log(this.tableData);
       }
     }
   },
